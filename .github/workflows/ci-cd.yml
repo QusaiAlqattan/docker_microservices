@@ -13,10 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Check Docker Hub credentials
+      - name: Compile Java projects
         run: |
-          echo "Docker Username: ${{ secrets.DOCKER_USERNAME }}"
-          echo "Docker Password: ${{ secrets.DOCKER_PASSWORD }}" | sed 's/./*/g'  # Mask password
+          mvn clean install -f Data-Entry/pom.xml
+          mvn clean install -f Authentication/pom.xml
+          mvn clean install -f Analytics/pom.xml
+          mvn clean install -f ShowData/pom.xm
 
       # Step 1: Checkout the repository
       - name: Checkout code
