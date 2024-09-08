@@ -1,57 +1,43 @@
-name: CI/CD Pipeline for Docker Compose
-
+name: Build and Push Docker Images
+ 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
-
+    branches: [main]
+ 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
+ 
     steps:
-
-      # Step 1: Checkout the repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
-
-      # Step 2: Set up Docker Buildx (for multi-platform builds)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # Step 3: Log in to Docker Hub (replace with your credentials)
+ 
+      - name: Set up JDK 22
+        uses: actions/setup-java@v2
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+          cache: maven
+ 
+      - name: Compile Java projects
+        run: |
+          mvn clean install -f dataWriter/pom.xml
+          mvn clean install -f authServer/pom.xml
+          mvn clean install -f analysis/pom.xml
+          mvn clean install -f dataReader/pom.xml
+ 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # Step 4: Build and push MySQL and MongoDB images from Docker Hub
-      - name: Pull MySQL image
-        run: docker pull mysql
-
-      - name: Pull MongoDB image
-        run: docker pull mongo
-
-      # Step 5: Build and push custom Docker images
-      - name: Build and push data-writer
+ 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+ 
+      - name: Build Docker and oush images with Docker Compose
         run: |
-          docker build -t qusaialqattan/data-writer ./dataWriter
-          docker push qusaialqattan/data-writer
-
-      - name: Build and push auth-server
-        run: |
-          docker build -t qusaialqattan/auth-server ./authServer
-          docker push qusaialqattan/auth-server
-
-      - name: Build and push analysis-server
-        run: |
-          docker build -t qusaialqattan/analysis-server ./analysis
-          docker push qusaialqattan/analysis-server
-
-      - name: Build and push data-reader
-        run: |
-          docker build -t qusaialqattan/data-reader ./dataReader
-          docker push qusaialqattan/data-reader
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml push
