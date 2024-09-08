@@ -1,0 +1,58 @@
+version: '3'
+services:
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_DATABASE: mydb
+      MYSQL_ROOT_PASSWORD: 12345
+    networks:
+      - com-net
+    container_name: mysql-container
+
+  data-writer:
+    image: qusaialqattan/data-writer:latest
+    build: ./dataWriter
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - com-net
+    container_name: data-writer-container
+
+  auth-service:
+    image: qusaialqattan/auth-service:latest
+    build: ./authServer 
+    networks:
+      - com-net
+    container_name: auth-server-container
+
+  analysis-server:
+    image: qusaialqattan/analysis-server:latest
+    build: ./analysis
+    depends_on:
+      - mysql
+      - mongo
+    networks:
+      - com-net
+    container_name: analysis-server-container
+
+  mongo:
+    image: mongo
+    networks:
+      - com-net
+    container_name: mongodb-container
+
+  data-reader:
+    image: qusaialqattan/data-reader:latest
+    build: ./dataReader
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mongo
+    networks:
+      - com-net
+
+networks:
+  com-net:
+    driver: bridge
