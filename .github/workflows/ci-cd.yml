@@ -13,13 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Compile Java projects
-        run: |
-          mvn clean install -f Data-Entry/pom.xml
-          mvn clean install -f Authentication/pom.xml
-          mvn clean install -f Analytics/pom.xml
-          mvn clean install -f ShowData/pom.xm
-
       # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
